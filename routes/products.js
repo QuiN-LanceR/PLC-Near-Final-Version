@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
+// Add this line to import the middleware
+const { authenticateToken } = require('../middleware/auth');
 
 // Get all products
 router.get('/', async (req, res) => {
@@ -13,7 +15,29 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get product by ID
+// Get all lifecycle history - MOVED BEFORE /:id ROUTE
+router.get('/lifecycle-history', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT lh.*, p.name as product_name, p.segment, p.category FROM lifecycle_history lh ' +
+      'JOIN products p ON lh.product_id = p.id ' +
+      'ORDER BY lh.change_date DESC'
+    );
+    
+    // Pastikan format tanggal konsisten
+    const formattedData = result.rows.map(row => ({
+      ...row,
+      change_date: new Date(row.change_date).toISOString()
+    }));
+    
+    res.json(formattedData);
+  } catch (err) {
+    console.error('Error fetching lifecycle history:', err);
+    res.status(500).json({ error: 'Internal server error', details: err.message });
+  }
+});
+
+// Get product by ID - MOVED AFTER MORE SPECIFIC ROUTES
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -110,6 +134,81 @@ router.get('/:id/history', async (req, res) => {
       [id]
     );
     res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get all lifecycle history
+router.get('/lifecycle-history', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT lh.*, p.name as product_name, p.segment, p.category FROM lifecycle_history lh ' +
+      'JOIN products p ON lh.product_id = p.id ' +
+      'ORDER BY lh.change_date DESC'
+    );
+    
+    // Pastikan format tanggal konsisten
+    const formattedData = result.rows.map(row => ({
+      ...row,
+      change_date: new Date(row.change_date).toISOString()
+    }));
+    
+    res.json(formattedData);
+  } catch (err) {
+    console.error('Error fetching lifecycle history:', err);
+    res.status(500).json({ error: 'Internal server error', details: err.message });
+  }
+});
+
+// Pastikan route /search berada SEBELUM route /:id
+// Hapus atau komentari route search yang lama
+
+// Search products - PINDAHKAN ROUTE INI SEBELUM ROUTE /:id
+router.get('/search', authenticateToken, async (req, res) => {
+  try {
+    const { term, lifecycle, segment } = req.query;
+    let query = 'SELECT * FROM products WHERE 1=1';
+    const params = [];
+    let paramIndex = 1;
+    if (term) {
+      params.push(`%${term}%`);
+      params.push(`%${term}%`);
+      params.push(`%${term}%`);
+      params.push(`%${term}%`);
+      query += ` AND (name LIKE $${paramIndex} OR description LIKE $${paramIndex+1} OR category LIKE $${paramIndex+2} OR segment LIKE $${paramIndex+3})`;
+      paramIndex += 4;
+    }
+    if (lifecycle) {
+      params.push(lifecycle);
+      query += ` AND lifecycle_stage = $${paramIndex}`;
+      paramIndex++;
+    }
+    if (segment) {
+      params.push(segment);
+      query += ` AND segment = $${paramIndex}`;
+      paramIndex++;
+    }
+    query += ' ORDER BY created_at DESC';
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error', details: err.message });
+  }
+});
+
+// Get product by ID - PINDAHKAN ROUTE INI SETELAH ROUTE /search
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query('SELECT * FROM products WHERE id = $1', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    
+    res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
