@@ -325,16 +325,17 @@ body {
 .top-cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-    margin-bottom: 1.5rem;
+    gap: 25px;
+    margin-bottom: 25px;
 }
 
-/* Second Row - 2 cards */
+/* Second Row - 2 cards centered */
 .second-cards {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    gap: 25px;
+    max-width: 66.66%;
+    margin: 0 auto;
 }
 
 .dashboard-cards {
@@ -343,11 +344,12 @@ body {
   gap: 20px;
   margin-top: 20px;
 }
+
 .dashboard-card {
   flex: 1 1 200px;
   min-width: 200px;
   max-width: 300px;
-  padding: 24px 20px;
+  padding: 20px 20px;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   display: flex;
@@ -360,7 +362,7 @@ body {
 .dashboard-card {
     background: var(--bg-primary);
     border-radius: var(--border-radius-lg);
-    padding: 1.5rem;
+    /* padding: 1.5rem; */
     box-shadow: var(--shadow-md);
     position: relative;
     overflow: hidden;
@@ -410,6 +412,7 @@ body {
 .card-header i {
     font-size: 1.25rem;
     opacity: 0.8;
+    padding-left: 5rem;
 }
 
 .card-content {

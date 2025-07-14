@@ -228,7 +228,7 @@ class ProductLifecycleManager {
 
     // Dashboard Functions
     loadDashboard() {
-        console.log('Loading Dashboard...');
+        // console.log('Loading Dashboard...');
         this.loadProducts().then(() => {
             this.updateStats();
             this.updateCharts();
@@ -239,7 +239,7 @@ class ProductLifecycleManager {
 
     // Product Catalog Functions
     async loadProductCatalog() {
-        console.log('Loading Product Catalog...');
+        // console.log('Loading Product Catalog...');
         try {
             await this.loadProducts(); // Memuat semua produk
             
@@ -256,7 +256,7 @@ class ProductLifecycleManager {
 
     setupProductFilters() {
         // Tidak perlu menambahkan event listener di sini karena sudah ditangani di bindEvents
-        console.log('Product filters setup complete');
+        // console.log('Product filters setup complete');
     }
 
     filterProductsBySearch(searchTerm) {
@@ -276,7 +276,7 @@ class ProductLifecycleManager {
 
     // Lifecycle Analysis Functions
     loadLifecycleAnalysis() {
-        console.log('Loading Lifecycle Analysis...');
+        // console.log('Loading Lifecycle Analysis...');
         this.initTimelineChart();
         this.initTransitionMatrix();
         this.generateLifecycleInsights();
@@ -317,7 +317,7 @@ class ProductLifecycleManager {
     generateLifecycleInsights() {
         // Generate insights based on current product data
         const insights = this.analyzeLifecycleData();
-        console.log('Lifecycle insights generated:', insights);
+        // console.log('Lifecycle insights generated:', insights);
     }
 
     analyzeLifecycleData() {
@@ -355,7 +355,7 @@ class ProductLifecycleManager {
 
     // Advanced Analytics Functions
     loadAdvancedAnalytics() {
-        console.log('Loading Advanced Analytics...');
+        // console.log('Loading Advanced Analytics...');
         this.initRevenueChart();
         this.initPerformanceMatrix();
         this.generateAdvancedMetrics();
@@ -621,7 +621,7 @@ class ProductLifecycleManager {
 
     // Reports Functions
     loadReports() {
-        console.log('Loading Reports...');
+        // console.log('Loading Reports...');
         this.generateProductReport();
         this.generateLifecycleReport();
         this.generatePerformanceReport();
@@ -1160,10 +1160,17 @@ class ProductLifecycleManager {
     }
 
     initLifecycleChart() {
-        const ctx = document.getElementById('lifecycleChart');
-        if (!ctx) return;
-        
-        this.charts.lifecycle = new Chart(ctx.getContext('2d'), {
+        const canvas = document.getElementById('lifecycleChart');
+        if (!canvas) return;
+
+        // Hancurkan chart lama jika ada
+        const existingChart = Chart.getChart(canvas);
+        if (existingChart) {
+            existingChart.destroy();
+        }
+
+        this.charts = this.charts || {};
+        this.charts.lifecycle = new Chart(canvas.getContext('2d'), {
             type: 'doughnut',
             data: {
                 labels: ['Introduction', 'Growth', 'Maturity', 'Decline'],
@@ -1196,7 +1203,6 @@ class ProductLifecycleManager {
                             }
                         }
                     },
-                    // TAMBAHAN: Plugin untuk menampilkan persentase pada chart
                     datalabels: {
                         display: true,
                         color: 'white',
@@ -1235,10 +1241,10 @@ class ProductLifecycleManager {
                     duration: 2000
                 }
             },
-            // TAMBAHAN: Registrasi plugin datalabels
             plugins: [ChartDataLabels]
         });
     }
+
 
     initTrendChart() {
         const ctx = document.getElementById('trendChart');
@@ -1457,14 +1463,18 @@ class ProductLifecycleManager {
     }
 
     initTimelineChart() {
-        const ctx = document.getElementById('timelineChart');
-        if (!ctx) return;
-        // Destroy previous chart instance if exists
-        if (this.charts && this.charts.timeline) {
-            this.charts.timeline.destroy();
-            this.charts.timeline = null;
+        const canvas = document.getElementById('timelineChart');
+        if (!canvas) return;
+
+        // Hancurkan chart jika Chart.js masih menyimpan instance sebelumnya
+        const existingChart = Chart.getChart(canvas); // atau Chart.getChart('timelineChart') pada versi lama
+        if (existingChart) {
+            existingChart.destroy();
         }
-        this.charts.timeline = new Chart(ctx.getContext('2d'), {
+
+        // Simpan ke this.charts jika kamu perlu referensinya
+        this.charts = this.charts || {};
+        this.charts.timeline = new Chart(canvas.getContext('2d'), {
             type: 'line',
             data: {
                 labels: [],
@@ -1513,6 +1523,7 @@ class ProductLifecycleManager {
             }
         });
     }
+
 
     updateCharts() {
         if (this.charts.lifecycle) {
